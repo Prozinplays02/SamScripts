@@ -61,7 +61,7 @@ AddRGBBorder(mainFrame)
 makeDraggable(mainFrame)
 mainFrame.Visible = false
 
--- Título
+-- Título (ALTERADO)
 local title = Instance.new("TextLabel", mainFrame)
 title.Size = UDim2.new(1,0,0,35)
 title.Position = UDim2.new(0,0,0,0)
@@ -70,7 +70,7 @@ title.TextColor3 = Color3.new(1,1,1)
 title.Font = Enum.Font.GothamBold
 title.TextSize = 18
 title.TextScaled = true
-title.Text = "eu te amo Julia, meu amoooor!"
+title.Text = "Sam Scripts"  -- ← << TÍTULO SUBSTITUÍDO
 AddRGBBorder(title)
 
 -- Abas
@@ -115,7 +115,7 @@ end
 
 switchTab("Player")
 
--- Função para criar botões normais
+-- Funções utilitárias (Botões, Toggles, etc)
 local function createButton(parent,text,callback)
     local btn = Instance.new("TextButton", parent)
     btn.Size = UDim2.new(1,-10,0,35)
@@ -129,7 +129,6 @@ local function createButton(parent,text,callback)
     return btn
 end
 
--- Função para criar toggle buttons (ON/OFF)
 local function createToggleButton(parent,text,callback)
     local btn = Instance.new("TextButton", parent)
     btn.Size = UDim2.new(1,-10,0,35)
@@ -146,11 +145,10 @@ local function createToggleButton(parent,text,callback)
         btn.Text = text.." : "..(state and "ON" or "OFF")
         callback(state)
     end)
-
     return btn
 end
 
--- Aba Player
+-- ABA PLAYER
 local playerTab = tabContents["Player"]
 local uiList = Instance.new("UIListLayout", playerTab)
 uiList.SortOrder = Enum.SortOrder.LayoutOrder
@@ -162,15 +160,13 @@ local currentTarget=nil
 
 createToggleButton(playerTab,"Noclip",function(state)
     noclip = state
-    print(state and "Noclip ativado" or "Noclip desativado")
 end)
 
 createToggleButton(playerTab,"Lock-On",function(state)
     lockOn = state
-    print(state and "Lock-On ativado" or "Lock-On desativado")
 end)
 
--- Player Speed
+-- Speed
 local speedBox = Instance.new("TextBox", playerTab)
 speedBox.Size = UDim2.new(1,-10,0,35)
 speedBox.BackgroundColor3=Color3.fromRGB(70,70,70)
@@ -185,7 +181,7 @@ speedBox.FocusLost:Connect(function(enter)
     end
 end)
 
--- Teleport
+-- TP to Player
 local tpBox = Instance.new("TextBox", playerTab)
 tpBox.Size = UDim2.new(1,-10,0,35)
 tpBox.BackgroundColor3=Color3.fromRGB(70,70,70)
@@ -196,51 +192,42 @@ tpBox.TextSize = 14
 AddRGBBorder(tpBox)
 
 createButton(playerTab,"Teleport",function()
-    if tpBox.Text~="" then
-        local p = game.Players:FindFirstChild(tpBox.Text)
-        if p and p.Character and p.Character:FindFirstChild("HumanoidRootPart") and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-            player.Character.HumanoidRootPart.CFrame = p.Character.HumanoidRootPart.CFrame + Vector3.new(0,3,0)
-        end
+    local p = game.Players:FindFirstChild(tpBox.Text)
+    if p and p.Character and p.Character:FindFirstChild("HumanoidRootPart") and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        player.Character.HumanoidRootPart.CFrame = p.Character.HumanoidRootPart.CFrame + Vector3.new(0,3,0)
     end
 end)
 
--- Noclip & Lock-On funcionamento
+-- Noclip / Lock-On comportamento
 RunService.Stepped:Connect(function()
     local char = player.Character
     if char then
         if noclip then
             for _,v in pairs(char:GetDescendants()) do
-                if v:IsA("BasePart") then
-                    v.CanCollide = false
-                end
+                if v:IsA("BasePart") then v.CanCollide = false end
             end
         end
+
         if lockOn then
             local hasWeapon = char:FindFirstChildOfClass("Tool")
             if hasWeapon then
-                local closest = nil
-                local shortest = math.huge
+                local closest,shortest=nil,math.huge
                 for _,npc in ipairs(workspace:GetDescendants()) do
                     if npc:IsA("Model") and npc:FindFirstChild("Humanoid") and npc:FindFirstChild("Head") and npc.Humanoid.Health>0 and not game.Players:GetPlayerFromCharacter(npc) then
-                        local dist = (camera.CFrame.Position - npc.Head.Position).Magnitude
-                        if dist < shortest then
-                            shortest = dist
-                            closest = npc
-                        end
+                        local d = (camera.CFrame.Position - npc.Head.Position).Magnitude
+                        if d < shortest then closest,shortest = npc,d end
                     end
                 end
                 currentTarget = closest
                 if currentTarget then
-                    camera.CFrame = CFrame.new(camera.CFrame.Position, currentTarget.Head.Position)
+                    camera.CFrame = CFrame.new(camera.CFrame.Position,currentTarget.Head.Position)
                 end
-            else
-                currentTarget = nil
             end
         end
     end
 end)
 
--- Aba Settings
+-- ABA SETTINGS (mantida)
 local settingsTab = tabContents["Settings"]
 local uiListS = Instance.new("UIListLayout", settingsTab)
 uiListS.SortOrder = Enum.SortOrder.LayoutOrder
@@ -255,7 +242,6 @@ local colorPalette={
     ["cinza"]=Color3.fromRGB(128,128,128),["RGB"]="RGB"
 }
 
--- Inputs Settings com placeholder
 local function createSettingInput(parent,labelText,placeholder,callback)
     local label = Instance.new("TextLabel", parent)
     label.Size = UDim2.new(1,-10,0,25)
@@ -273,7 +259,6 @@ local function createSettingInput(parent,labelText,placeholder,callback)
     box.PlaceholderText = placeholder
     box.Font=Enum.Font.GothamBold
     box.TextSize=14
-    box.Text = ""
     AddRGBBorder(box)
     box.FocusLost:Connect(function(enter)
         if enter then callback(box.Text) end
@@ -281,55 +266,27 @@ local function createSettingInput(parent,labelText,placeholder,callback)
 end
 
 -- Configuração de cores
-createSettingInput(settingsTab,"Board Color:","Type color name (e.g., red)",function(text)
+createSettingInput(settingsTab,"Board Color:","Type color name",function(text)
     local c=colorPalette[text:lower()]
     if c then
-        if c=="RGB" then
-            task.spawn(function()
-                while true do
-                    for i=0,255 do
-                        for _,s in pairs(gui:GetDescendants()) do
-                            if s:IsA("UIStroke") then s.Color = Color3.fromHSV(i/255,1,1) end
-                        end
-                        task.wait(0.02)
-                    end
-                end
-            end)
-        else
-            for _,s in pairs(gui:GetDescendants()) do
-                if s:IsA("UIStroke") then s.Color=c end
+        for _,s in pairs(gui:GetDescendants()) do
+            if s:IsA("UIStroke") then s.Color=c end
+        end
+    end
+end)
+
+createSettingInput(settingsTab,"Font Color:","Type color name",function(text)
+    local c=colorPalette[text:lower()]
+    if c then
+        for _,lbl in pairs(gui:GetDescendants()) do
+            if lbl:IsA("TextLabel") or lbl:IsA("TextButton") or lbl:IsA("TextBox") then
+                lbl.TextColor3 = c
             end
         end
     end
 end)
 
-createSettingInput(settingsTab,"Font Color:","Type color name (e.g., blue)",function(text)
-    local c=colorPalette[text:lower()]
-    if c then
-        if c=="RGB" then
-            task.spawn(function()
-                while true do
-                    for i=0,255 do
-                        for _,lbl in pairs(gui:GetDescendants()) do
-                            if lbl:IsA("TextLabel") or lbl:IsA("TextButton") or lbl:IsA("TextBox") then
-                                lbl.TextColor3 = Color3.fromHSV(i/255,1,1)
-                            end
-                        end
-                        task.wait(0.02)
-                    end
-                end
-            end)
-        else
-            for _,lbl in pairs(gui:GetDescendants()) do
-                if lbl:IsA("TextLabel") or lbl:IsA("TextButton") or lbl:IsA("TextBox") then
-                    lbl.TextColor3 = c
-                end
-            end
-        end
-    end
-end)
-
-createSettingInput(settingsTab,"Background Color:","Type color name (e.g., black)",function(text)
+createSettingInput(settingsTab,"Background Color:","Type color name",function(text)
     local c=colorPalette[text:lower()]
     if c then
         for _,f in pairs(gui:GetDescendants()) do
@@ -338,33 +295,9 @@ createSettingInput(settingsTab,"Background Color:","Type color name (e.g., black
     end
 end)
 
-createSettingInput(settingsTab,"Change TextBox Color:","Type color name (e.g., green)",function(text)
-    local c=colorPalette[text:lower()]
-    if c then
-        if c=="RGB" then
-            task.spawn(function()
-                while true do
-                    for i=0,255 do
-                        for _,tb in pairs(gui:GetDescendants()) do
-                            if tb:IsA("TextBox") then
-                                tb.BackgroundColor3 = Color3.fromHSV(i/255,1,1)
-                            end
-                        end
-                        task.wait(0.02)
-                    end
-                end
-            end)
-        else
-            for _,tb in pairs(gui:GetDescendants()) do
-                if tb:IsA("TextBox") then tb.BackgroundColor3 = c end
-            end
-        end
-    end
-end)
-
--- Função de animação de Welcome
+-- Animação de boas-vindas
 local function showWelcomeAnimation()
-    task.wait(2)
+    task.wait(1)
     local welcomeLabel = Instance.new("TextLabel", gui)
     welcomeLabel.Size = UDim2.new(0,0,0,0)
     welcomeLabel.Position = UDim2.new(0.5,0,0.3,0)
@@ -387,16 +320,11 @@ local function showWelcomeAnimation()
         task.wait(0.05)
     end
 
-    local startTime = tick()
-    while tick()-startTime<1 do
-        welcomeLabel.TextColor3 = Color3.fromHSV((tick()%1),1,1)
-        task.wait(0.03)
-    end
-
     local tweenOut = TweenService:Create(welcomeLabel,TweenInfo.new(2,Enum.EasingStyle.Quad,Enum.EasingDirection.InOut),{Size=UDim2.new(0,0,0,0),TextTransparency=1})
     tweenOut:Play()
     tweenOut.Completed:Connect(function()
         welcomeLabel:Destroy()
+
         local openBtn = Instance.new("TextButton", gui)
         openBtn.Size = UDim2.new(0,120,0,35)
         openBtn.Position = UDim2.new(0,20,0,20)
@@ -416,5 +344,4 @@ local function showWelcomeAnimation()
     end)
 end
 
--- Executa a animação
-showWelcomeAnimation()# SamScripts
+showWelcomeAnimation()
